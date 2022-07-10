@@ -5,6 +5,7 @@ import pygame
 from settings import Settings
 from ship import Ship
 from bullet import Bullet
+from alien import  Alien
 
 pygame.init()
 pygame.display.set_caption("Alien Invasion")
@@ -19,6 +20,41 @@ class AlienInvasion:
         # self.settings.screen_height = self.screen.get_rect().height
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
+        self.aliens = pygame.sprite.Group()
+
+        self._create_fleet()
+
+    def _create_fleet(self):
+        # 创建一个外星人并计算一行可容纳多少个外星人
+        alien = Alien(self)
+        alien_width = alien.rect.width
+        alien_height = alien.rect.height
+        available_space_x = self.settings.screen_width - (2 * alien_width)
+        number_aliens_x = available_space_x // (2 * alien_width)
+
+        # 计算屏幕可容纳多少行外星人
+        ship_height = self.ship.rect.height
+        available_space_y = (self.settings.screen_height - (3 * alien_height) - ship_height)
+
+        number_rows = available_space_y // (2 * alien_height)
+
+        print(number_rows)
+
+        for row_number in range(number_rows):
+            # 创建第一行外星人
+            for alien_number in range(number_aliens_x):
+                # 创建一个外星人并将加入当前行
+                self._create_alien(row_number,alien_number)
+
+    def _create_alien(self, row_number, alien_number):
+        # 创建一个外星人
+        alien = Alien(self)
+        alien_width = alien.rect.width
+        alien_height = alien.rect.height
+        alien.x = alien_width + 2 * alien_width * alien_number
+        alien.rect.x = alien.x
+        alien.rect.y = alien.rect.height + 2 * alien_height * row_number
+        self.aliens.add(alien)
 
     def _check_events(self):
         # 监视鼠标和键盘时间
@@ -64,6 +100,8 @@ class AlienInvasion:
         # 绘制子弹
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
+        # 绘制外星人
+        self.aliens.draw(self.screen)
         # 让最近绘制的屏幕可见
         pygame.display.flip()
 
@@ -82,8 +120,11 @@ class AlienInvasion:
             self.ship.update()
 
             self._update_bullets()
+            self._update_aliens()
             self._update_screen()
 
+    def _update_aliens(self):
+        self.aliens.update()
 
 if __name__ == '__main__':
     ai = AlienInvasion()
